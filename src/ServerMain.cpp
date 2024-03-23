@@ -29,8 +29,11 @@ void clientThread(std::unique_ptr<ServerSocket> client) {
 			
 			/* Check if peers are already connected */
 			if(peers.empty()) {
-				for(unsigned long i = 0; i < peer_list.size(); i++)
+				for(unsigned long i = 0; i < peer_list.size(); i++) {
 					peers.push_back(peerSocket.Init(peer_list[i].ip, peer_list[i].port));
+					if(peers[i])
+						peers[i]->SendAck();
+				}
 			}
 			
 			/* Multicast transaction to all peers */
@@ -41,6 +44,7 @@ void clientThread(std::unique_ptr<ServerSocket> client) {
 						peers[i] = nullptr;
 				} else {
 					peers[i] = peerSocket.Init(peer_list[i].ip, peer_list[i].port);
+					peers[i]->SendAck();
 					if(peers[i]) {
 						response = peers[i]->SendTransaction(txn);
 						if(response == -1)
