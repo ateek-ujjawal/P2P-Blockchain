@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "Socket.h"
+#include "Transaction.h"
 
 class ServerSocket: public Socket {
 public:
@@ -14,6 +15,7 @@ public:
 
 	bool Init(int port);
 	std::unique_ptr<ServerSocket> Accept();
+	transaction_t ReceiveTransaction();
 };
 
 

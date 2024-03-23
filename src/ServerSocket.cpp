@@ -55,3 +55,12 @@ std::unique_ptr<ServerSocket> ServerSocket::Accept() {
 
 	return std::unique_ptr<ServerSocket>(new ServerSocket(accepted_fd, IsNagleOn()));
 }
+
+transaction_t ServerSocket::ReceiveTransaction() {
+	transaction_t *txn_ptr = (transaction_t*) calloc(0, sizeof(transaction_t));
+	if (recv(fd_, txn_ptr, sizeof(transaction_t), MSG_NOSIGNAL) == 0) {
+		txn_ptr->id = -1;
+	}
+	
+	return *txn_ptr;
+}

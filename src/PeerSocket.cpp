@@ -5,10 +5,15 @@
 #include <netinet/tcp.h>
 #include <sys/types.h>
 
-#include "ClientSocket.h"
-#include "Transaction.h"
+#include "PeerSocket.h"
 
-int ClientSocket::Init(std::string ip, int port) {
+PeerSocket::PeerSocket(int fd, bool nagle_on) {
+	fd_ = fd;
+	is_initialized_ = true;
+	NagleOn(nagle_on);
+}
+
+std::unique_ptr<PeerSocket> PeerSocket::Init(std::string ip, int port) {
 	if (is_initialized_) {
 		return 0;
 	}
@@ -29,15 +34,15 @@ int ClientSocket::Init(std::string ip, int port) {
 		return 0;
 	}
 	is_initialized_ = true;
-	return 1;
+	return std::unique_ptr<PeerSocket>(new PeerSocket(fd_, IsNagleOn()));
 }
 
-int ClientSocket::Send(transaction_t txn) {
+int PeerSocket::SendTransaction(transaction_t txn) {
 	transaction_t *txn_ptr = &txn;
 	
 	if (send(fd_, txn_ptr, sizeof(transaction_t), MSG_NOSIGNAL) == -1) {
 		perror("ERROR: failed to send transaction");
-		exit(1);
+		return -1;
 	}
 	
 	return 1;
