@@ -16,6 +16,8 @@ public:
 	bool Init(int port);
 	std::unique_ptr<ServerSocket> Accept();
 	transaction_t ReceiveTransaction();
+	int dummy();
+	int ReceiveAck();
 };
 
 

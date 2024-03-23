@@ -15,6 +15,7 @@ public:
 	
 	std::unique_ptr<PeerSocket> Init(std::string ip, int port);
 	int SendTransaction(transaction_t txn);
+	int SendAck();
 };
 
 #endif

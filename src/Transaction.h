@@ -3,10 +3,11 @@
 
 #include <string>
 
+/* Did not use string for sender and receiver as it was giving segfault on server side */
 typedef struct Transaction {
 	int id;
-	std::string sender;
-	std::string receiver;
+	int sender;
+	int receiver;
 	int amount;
 } transaction_t;
 

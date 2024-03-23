@@ -45,3 +45,14 @@ int PeerSocket::SendTransaction(transaction_t txn) {
 	
 	return 1;
 }
+
+int PeerSocket::SendAck() {
+	int *ack_ptr = (int*) calloc(0, sizeof(int));
+	*ack_ptr = 1;
+	if(send(fd_, ack_ptr, sizeof(int), MSG_NOSIGNAL) == -1) {
+		perror("ERROR: failed to send acknowledgement");
+		exit(1);
+	}
+	
+	return 1;
+}

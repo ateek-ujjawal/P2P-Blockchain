@@ -14,6 +14,7 @@ public:
 
 	int Init(std::string ip, int port);
 	int Send(transaction_t transaction);
+	int SendAck();
 };
 
 

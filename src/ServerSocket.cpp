@@ -43,6 +43,10 @@ bool ServerSocket::Init(int port) {
 	return true;
 }
 
+int ServerSocket::dummy() {
+	return 1;
+}
+
 std::unique_ptr<ServerSocket> ServerSocket::Accept() {
 	int accepted_fd;
 	struct sockaddr_in addr;
@@ -54,6 +58,15 @@ std::unique_ptr<ServerSocket> ServerSocket::Accept() {
 	}
 
 	return std::unique_ptr<ServerSocket>(new ServerSocket(accepted_fd, IsNagleOn()));
+}
+
+int ServerSocket::ReceiveAck() {
+	int *ack_ptr = (int*) calloc(0, sizeof(int));
+	if (recv(fd_, ack_ptr, sizeof(int), MSG_NOSIGNAL) == 0) {
+		*ack_ptr = -1;
+	}
+	
+	return *ack_ptr;
 }
 
 transaction_t ServerSocket::ReceiveTransaction() {
