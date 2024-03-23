@@ -43,10 +43,6 @@ bool ServerSocket::Init(int port) {
 	return true;
 }
 
-int ServerSocket::dummy() {
-	return 1;
-}
-
 std::unique_ptr<ServerSocket> ServerSocket::Accept() {
 	int accepted_fd;
 	struct sockaddr_in addr;
