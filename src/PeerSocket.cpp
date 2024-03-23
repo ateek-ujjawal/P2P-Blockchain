@@ -14,14 +14,12 @@ PeerSocket::PeerSocket(int fd, bool nagle_on) {
 }
 
 std::unique_ptr<PeerSocket> PeerSocket::Init(std::string ip, int port) {
-	if (is_initialized_) {
-		return 0;
-	}
+
 	struct sockaddr_in addr;
 	fd_ = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd_ < 0) {
 		perror("ERROR: failed to create a socket");
-		return 0;
+		return nullptr;
 	}
 
 	memset(&addr, '\0', sizeof(addr));
@@ -31,7 +29,7 @@ std::unique_ptr<PeerSocket> PeerSocket::Init(std::string ip, int port) {
 
 	if ((connect(fd_, (struct sockaddr *) &addr, sizeof(addr))) < 0) {
 		perror("ERROR: failed to connect");
-		return 0;
+		return nullptr;
 	}
 	is_initialized_ = true;
 	return std::unique_ptr<PeerSocket>(new PeerSocket(fd_, IsNagleOn()));
