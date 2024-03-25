@@ -8,7 +8,6 @@
 int main(int argc, char *argv[]) {
 	int port;
 	int peer_cnt;
-	int ackResponse;
 	SSocket socket;
 	ServerThread serverThread;
 	std::unique_ptr<SSocket> new_socket;
@@ -35,7 +34,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	while ((new_socket = socket.Accept())) {
-		std::thread th(ServerThread::ServerThreadFunc, &serverThread, std::move(new_socket));
+		std::thread th(&ServerThread::ServerThreadFunc, &serverThread, std::move(new_socket));
 		thread_vector.push_back(std::move(th));
 	}
 

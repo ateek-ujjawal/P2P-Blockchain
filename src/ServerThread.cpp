@@ -21,7 +21,7 @@ void ServerThread::SetPeers(int cnt, char *argv[]) {
 
 void ServerThread::ServerThreadFunc(std::unique_ptr<SSocket> socket) {
 	int ackResponse;
-	std::unique_ptr<ServerStub> stub;
+	std::unique_ptr<ServerStub> stub(new ServerStub());
 
 	stub->Init(std::move(socket));
 
@@ -40,18 +40,17 @@ void ServerThread::ServerThreadFunc(std::unique_ptr<SSocket> socket) {
 
 /* Respond to client requests */
 void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
-	ServerStub stub;
 
 	Transaction txn;
-	txn.id = 0;
+	txn.SetTransaction(0, NULL, 0, NULL, 0, 0);
 	int response;
 
-	while (txn.id != -1) {
+	while (txn.GetID() != -1) {
 		/* Receive a transaction from a client */
 		txn = stub->ReceiveTransaction();
-		if (txn.id != -1) {
+		if (txn.GetID() != -1) {
 			/* Print transaction(do something with the transaction) */
-			std::cout << txn.sender << " " << txn.receiver << " " << txn.amount << std::endl;
+			std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
 
 			// /* Check if peers are already connected */
 			// if (peers.empty()) {
@@ -68,6 +67,7 @@ void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
 				if (!peer.isConnect) {
 					peer.peerStub.Init(peer.ip, peer.port);
 					peer.peerStub.SendAck();
+					peer.isConnect = true;
 				}
 				response = peer.peerStub.SendTransaction(txn);
 				// todo need to handle response
@@ -82,12 +82,12 @@ void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
 */
 void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 	Transaction txn;
-	txn.id = 0;
+	txn.SetTransaction(0, NULL, 0, NULL, 0, 0);
 
-	while (txn.id != -1) {
+	while (txn.GetID() != -1) {
 		txn = stub->ReceiveTransaction();
-		if (txn.id == -1) {
-			std::cout << txn.sender << " " << txn.receiver << " " << txn.amount << std::endl;
+		if (txn.GetID() != -1) {
+			std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
 		}
 	}
 }

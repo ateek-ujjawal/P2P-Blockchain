@@ -3,19 +3,20 @@
 
 #include "ClientStub.h"
 
+#define TXN_SIZE (2 * NAME_SIZE) + 8 // Transaction fields: id(4 bytes) sender(NAME_SIZE bytes, currently 20) receiver(NAME_SIZE bytes) amount(4 bytes)
+
 ClientStub clientStub;
 
 /* Send all transactions to the provided server */
 void sendTransactions(int transactions, int amount) {
 	Transaction txn;
 	int response;
+	char sender[] = "Client 1";
+	char receiver[] = "Client 2";
 
 	for (int i = 0; i < transactions; i++) {
-		txn.id = i + 1;
-		txn.sender = 1;
-		txn.receiver = 2;
-		txn.amount = amount;
-		response = clientStub.Send(txn);
+		txn.SetTransaction(i + 1, sender, 8, receiver, 8, amount);
+		response = clientStub.SendTransaction(txn);
 	}
 
 	if (response == 1)
@@ -34,13 +35,14 @@ int main(int argc, char *argv[]) {
 
 	std::string ip = argv[1];
 	int port = atoi(argv[2]);
+	int type = atoi(argv[3]);
 
 	/* Connect to peer server and send client side acknowledgement */
 	clientStub.Init(ip, port);
 	clientStub.SendAck();
 
 	/* Request type 0 for sending transactions and 1 for reading the blockchain */
-	if (atoi(argv[3]) == 0) {
+	if (type == 0) {
 		int transactions = atoi(argv[4]);
 		int amount = atoi(argv[5]);
 		sendTransactions(transactions, amount);

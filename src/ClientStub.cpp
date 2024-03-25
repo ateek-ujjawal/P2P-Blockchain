@@ -10,28 +10,18 @@ int ClientStub::Init(std::string ip, int port) {
 	return socket.Init(ip, port);
 }
 
-int ClientStub::Send(Transaction txn) {
-	// todo need serialize
-
-	// Transaction *txn_ptr = &txn;
-
-	// if (send(fd_, txn_ptr, sizeof(Transaction), MSG_NOSIGNAL) == -1) {
-	// 	perror("ERROR: failed to send transaction");
-	// 	exit(1);
-	// }
-
-	// return 1;
+int ClientStub::SendTransaction(Transaction txn) {
+	char buffer[48];
+	txn.Marshal(buffer);
+	return socket.Send(buffer, txn.GetSize(), 0);
 }
 
 int ClientStub::SendAck() {
-	// todo need serialize
-
-	// int *ack_ptr = (int *)calloc(0, sizeof(int));
-	// *ack_ptr = 0;
-	// if (send(fd_, ack_ptr, sizeof(int), MSG_NOSIGNAL) == -1) {
-	// 	perror("ERROR: failed to send acknowledgement");
-	// 	exit(1);
-	// }
-
-	// return 1;
+	int ack = 0;
+	int size = 4;
+	char buffer[size];
+	
+	int net_ack = htonl(ack);
+	memcpy(buffer, &net_ack, sizeof(net_ack));
+	return socket.Send(buffer, size, 0);
 }

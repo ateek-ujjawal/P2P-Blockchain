@@ -13,7 +13,7 @@ private:
 public:
 	ClientStub();
 	int Init(std::string ip, int port);
-	int Send(Transaction transaction);
+	int SendTransaction(Transaction txn);
 	int SendAck();
 };
 
