@@ -1,5 +1,5 @@
 #ifndef __BLOCK_H__
-#define __BLOCK__H__
+#define __BLOCK_H__
 
 #include "Transaction.h"
 
