@@ -11,19 +11,21 @@ private:
 	char sender[NAME_SIZE];
 	char receiver[NAME_SIZE];
 	int amount;
-	
+
 public:
 	Transaction();
 	int GetID();
-	char* GetSender();
-	char* GetReceiver();
+	char *GetSender();
+	char *GetReceiver();
 	int GetAmount();
 	int GetSize();
-	
+
 	void SetTransaction(int txn_id, char *txn_sender, int sender_len, char *txn_receiver, int receiver_len, int txn_amount);
-	
+
 	void Marshal(char *buffer);
 	void Unmarshal(char *buffer);
+
+	void Print();
 };
 
 #endif

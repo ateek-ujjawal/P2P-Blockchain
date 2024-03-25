@@ -40,7 +40,6 @@ void ServerThread::ServerThreadFunc(std::unique_ptr<SSocket> socket) {
 
 /* Respond to client requests */
 void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
-
 	Transaction txn;
 	txn.SetTransaction(0, NULL, 0, NULL, 0, 0);
 	int response;
@@ -50,7 +49,8 @@ void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
 		txn = stub->ReceiveTransaction();
 		if (txn.GetID() != -1) {
 			/* Print transaction(do something with the transaction) */
-			std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
+			// std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
+			txn.Print();
 
 			// /* Check if peers are already connected */
 			// if (peers.empty()) {
@@ -87,7 +87,8 @@ void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 	while (txn.GetID() != -1) {
 		txn = stub->ReceiveTransaction();
 		if (txn.GetID() != -1) {
-			std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
+			// std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
+			txn.Print();
 		}
 	}
 }
