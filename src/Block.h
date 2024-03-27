@@ -5,6 +5,8 @@
 
 #define HASH_LENGTH 256
 
+#define BLOCK_MAX_SIZE 4096
+
 class Block {
 private:
 	/* data */

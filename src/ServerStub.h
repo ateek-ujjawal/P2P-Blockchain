@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "Block.h"
 #include "SSocket.h"
 #include "Transaction.h"
 
@@ -14,6 +15,7 @@ public:
 	ServerStub();
 	void Init(std::unique_ptr<SSocket> socket);
 	Transaction ReceiveTransaction();
+	Block ReceiveBlock();
 	int ReceiveAck();
 };
 
