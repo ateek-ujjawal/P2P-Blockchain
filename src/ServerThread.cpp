@@ -44,34 +44,35 @@ void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
 	txn.SetTransaction(0, NULL, 0, NULL, 0, 0);
 	int response;
 
-	while (txn.GetID() != -1) {
+	while (true) {
 		/* Receive a transaction from a client */
 		txn = stub->ReceiveTransaction();
-		if (txn.GetID() != -1) {
-			/* Print transaction(do something with the transaction) */
-			// std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
-			txn.Print();
+		if (!txn.IsValid())
+			break;
 
-			// /* Check if peers are already connected */
-			// if (peers.empty()) {
-			// 	for (unsigned long i = 0; i < peer_list.size(); i++) {
-			// 		peers.push_back(peerSocket.Init(peer_list[i].ip, peer_list[i].port));
-			// 		if (peers[i])
-			// 			peers[i]->SendAck();
-			// 	}
-			// }
+		/* Print transaction(do something with the transaction) */
+		// std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
+		txn.Print();
 
-			/* Multicast transaction to all peers */
-			for (auto &peer : peer_list) {
-				/* Check if peers are already connected */
-				if (!peer.isConnect) {
-					peer.peerStub.Init(peer.ip, peer.port);
-					peer.peerStub.SendAck();
-					peer.isConnect = true;
-				}
-				response = peer.peerStub.SendTransaction(txn);
-				// todo need to handle response
+		// /* Check if peers are already connected */
+		// if (peers.empty()) {
+		// 	for (unsigned long i = 0; i < peer_list.size(); i++) {
+		// 		peers.push_back(peerSocket.Init(peer_list[i].ip, peer_list[i].port));
+		// 		if (peers[i])
+		// 			peers[i]->SendAck();
+		// 	}
+		// }
+
+		/* Multicast transaction to all peers */
+		for (auto &peer : peer_list) {
+			/* Check if peers are already connected */
+			if (!peer.isConnect) {
+				peer.peerStub.Init(peer.ip, peer.port);
+				peer.peerStub.SendAck();
+				peer.isConnect = true;
 			}
+			response = peer.peerStub.SendTransaction(txn);
+			// todo need to handle response
 		}
 	}
 }
@@ -84,11 +85,12 @@ void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 	Transaction txn;
 	txn.SetTransaction(0, NULL, 0, NULL, 0, 0);
 
-	while (txn.GetID() != -1) {
+	while (true) {
 		txn = stub->ReceiveTransaction();
-		if (txn.GetID() != -1) {
-			// std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
-			txn.Print();
-		}
+		if (!txn.IsValid())
+			break;
+
+		// std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
+		txn.Print();
 	}
 }

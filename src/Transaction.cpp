@@ -72,3 +72,7 @@ void Transaction::Print() {
 	std::cout << "receiver " << receiver << " ";
 	std::cout << "amount " << amount << std::endl;
 }
+
+bool Transaction::IsValid() {
+	return (id != -1);
+}
