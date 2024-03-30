@@ -2,6 +2,7 @@
 #define __BLOCK_H__
 
 #include "Transaction.h"
+#include <vector>
 
 #define HASH_LENGTH 256
 

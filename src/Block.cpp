@@ -1,6 +1,8 @@
 #include "Block.h"
 
+#include <cstring>
 #include <iostream>
+#include <arpa/inet.h>
 
 Block::Block(/* args */) {
 }
