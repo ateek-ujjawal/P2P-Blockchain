@@ -1,4 +1,5 @@
 #include "ServerThread.h"
+#include "Common.h"
 
 #include <iostream>
 
@@ -53,6 +54,10 @@ void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
 		/* Print transaction(do something with the transaction) */
 		// std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
 		txn.Print();
+		{
+			std::lock_guard<std::mutex> lock(mtx);
+			pending_txn.push_back(txn);
+		}
 
 		// /* Check if peers are already connected */
 		// if (peers.empty()) {
@@ -92,5 +97,9 @@ void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 
 		// std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
 		txn.Print();
+		{
+			std::lock_guard<std::mutex> lock(mtx);
+			pending_txn.push_back(txn);
+		}
 	}
 }

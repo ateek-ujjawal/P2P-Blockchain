@@ -1,9 +1,10 @@
 #include <iostream>
 #include <thread>
-#include <vector>
 
 #include "SSocket.h"
+#include "BlockThread.h"
 #include "ServerThread.h"
+#include "Common.h"
 
 int main(int argc, char *argv[]) {
 	int port;
@@ -32,6 +33,10 @@ int main(int argc, char *argv[]) {
 		std::cout << "Socket initialization failed" << std::endl;
 		return 0;
 	}
+	
+	BlockThread blockThread;
+	std::thread block_th(&BlockThread::GenerateBlock, &blockThread);
+	thread_vector.push_back(std::move(block_th));
 
 	while ((new_socket = socket.Accept())) {
 		std::thread th(&ServerThread::ServerThreadFunc, &serverThread, std::move(new_socket));

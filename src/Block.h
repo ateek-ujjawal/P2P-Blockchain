@@ -3,6 +3,7 @@
 
 #include "Transaction.h"
 #include <vector>
+#include <string>
 
 #define HASH_LENGTH 256
 
@@ -12,10 +13,13 @@ class Block {
 private:
 	/* data */
 	char prev_hash[HASH_LENGTH];
+	char hash[HASH_LENGTH];
 	int nonce;
 	int transaction_amount;
 	std::vector<Transaction> t_list;
-
+	
+	//Generates a sha256 hash of this block
+	std::string GenerateHash();
 public:
 	Block(/* args */);
 	~Block();
@@ -29,6 +33,12 @@ public:
 
 	void Marshal(char* buffer);
 	void Unmarshal(char* buffer);
+	
+	void AddTransactions(std::vector<Transaction> txn_list);
+	void ResetTransactions();
+	
+	//Generate Proof-of-Work(Returns the sha256 hash that matches the difficulty set)
+	char* GeneratePOW(int difficulty);
 
 	void Print();
 };

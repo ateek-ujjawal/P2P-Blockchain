@@ -20,7 +20,7 @@ void sendTransactions(int transactions, int amount) {
 	}
 
 	if (response == 1)
-		std::cout << "Send success";
+		std::cout << "Send success" << std::endl;
 }
 
 /* Read blockchain copy of the provided server */

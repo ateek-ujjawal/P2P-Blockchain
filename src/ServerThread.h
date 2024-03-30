@@ -21,7 +21,6 @@ private:
 	std::vector<Peer> peer_list;
 	void HandleClient(std::unique_ptr<ServerStub> stub);
 	void HandlePeer(std::unique_ptr<ServerStub> stub);
-
 public:
 	ServerThread(/* args */);
 	~ServerThread();
