@@ -28,6 +28,7 @@ public:
 	~Block();
 
 	char* GetPrevHash();
+	char* GetHash();
 	int GetNonce();
 	int GetTransactionAmount();
 	std::vector<Transaction> GetTList();

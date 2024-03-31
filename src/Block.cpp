@@ -20,6 +20,7 @@ Block::~Block() {
 }
 
 char* Block::GetPrevHash() { return prev_hash; }
+char* Block::GetHash() { return hash; }
 int Block::GetNonce() { return nonce; }
 int Block::GetTransactionAmount() { return transaction_amount; }
 std::vector<Transaction> Block::GetTList() { return t_list; }
