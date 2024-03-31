@@ -5,6 +5,9 @@
 
 #define NAME_SIZE 20
 
+// Transaction fields: id(4 bytes) sender(NAME_SIZE bytes, currently 20) receiver(NAME_SIZE bytes) amount(4 bytes)
+#define TXN_SIZE (2 * NAME_SIZE + 2 * sizeof(int))
+
 class Transaction {
 private:
 	int id;
@@ -28,6 +31,8 @@ public:
 	void Print();
 
 	bool IsValid();
+
+	std::string ToString();
 };
 
 #endif

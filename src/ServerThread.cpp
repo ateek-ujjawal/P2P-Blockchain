@@ -1,7 +1,13 @@
 #include "ServerThread.h"
-#include "Common.h"
 
+#include <time.h>
+
+#include <chrono>
+#include <cstdlib>
 #include <iostream>
+#include <thread>
+
+#include "sha256.h"
 
 ServerThread::ServerThread(/* args */) {
 }
@@ -20,7 +26,7 @@ void ServerThread::SetPeers(int cnt, char *argv[]) {
 	}
 }
 
-void ServerThread::ServerThreadFunc(std::unique_ptr<SSocket> socket) {
+void ServerThread::ServerCommunicate(std::unique_ptr<SSocket> socket) {
 	int ackResponse;
 	std::unique_ptr<ServerStub> stub(new ServerStub());
 
@@ -36,6 +42,35 @@ void ServerThread::ServerThreadFunc(std::unique_ptr<SSocket> socket) {
 		break;
 	default:
 		break;
+	}
+}
+
+void ServerThread::ServerGenerateBlock() {
+	srand(time(0));
+	int nonce = rand();
+	while (true) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+		{
+			std::lock_guard<std::mutex> lock(pending_txn_mtx);
+			while (cur_txns.size() < MAX_TXN_SIZE && !pending_txn.empty()) {
+				cur_txns.push_back(pending_txn.front());
+				pending_txn.pop();
+			}
+		}
+
+		if (!cur_txns.empty()) {
+			// todo prev hash should get from blockchain
+			auto blk = GenerateBlockByPOW("prev hash", 1, nonce);
+			nonce++;
+			if (blk != nullptr) {
+				// todo got the block, link to blockchain
+
+				// regenerate the nonce
+				nonce = rand();
+
+				cur_txns.clear();
+			}
+		}
 	}
 }
 
@@ -55,8 +90,8 @@ void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
 		// std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
 		txn.Print();
 		{
-			std::lock_guard<std::mutex> lock(mtx);
-			pending_txn.push_back(txn);
+			std::lock_guard<std::mutex> lock(pending_txn_mtx);
+			pending_txn.push(txn);
 		}
 
 		// /* Check if peers are already connected */
@@ -98,8 +133,28 @@ void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 		// std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
 		txn.Print();
 		{
-			std::lock_guard<std::mutex> lock(mtx);
-			pending_txn.push_back(txn);
+			std::lock_guard<std::mutex> lock(pending_txn_mtx);
+			pending_txn.push(txn);
 		}
 	}
+}
+
+// Generate Proof-of-work with given difficulty
+Block *ServerThread::GenerateBlockByPOW(char *prev_hash, int difficulty, int nonce) {
+	Block *blk = nullptr;
+	std::string diff_string(difficulty, '0');
+	std::string txns_str;
+	std::string input;
+	std::string output_hash;
+
+	for (auto &txn : cur_txns)
+		txns_str += txn.ToString();
+
+	input = prev_hash + txns_str + std::to_string(nonce);
+	output_hash = sha256(input);
+	if (std::strncmp(&diff_string[0], &output_hash[0], difficulty) == 0) {
+		blk = new Block(prev_hash, &output_hash[0], nonce, cur_txns.size(), cur_txns);
+	}
+
+	return blk;
 }

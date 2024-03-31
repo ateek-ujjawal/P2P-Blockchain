@@ -3,8 +3,6 @@
 
 #include "ClientStub.h"
 
-#define TXN_SIZE (2 * NAME_SIZE) + 8 // Transaction fields: id(4 bytes) sender(NAME_SIZE bytes, currently 20) receiver(NAME_SIZE bytes) amount(4 bytes)
-
 ClientStub clientStub;
 
 /* Send all transactions to the provided server */

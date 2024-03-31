@@ -1,13 +1,16 @@
 #ifndef __BLOCK_H__
 #define __BLOCK_H__
 
-#include "Transaction.h"
 #include <vector>
-#include <string>
+
+#include "Transaction.h"
 
 #define HASH_LENGTH 256
 
+// prev_hash(256) + hash(256) + nonce(4) + transaction_amount(4)
 #define BLOCK_MAX_SIZE 4096
+
+#define MAX_TXN_SIZE ((BLOCK_MAX_SIZE - 2 * HASH_LENGTH - 2 * sizeof(int)) / TXN_SIZE)
 
 class Block {
 private:
@@ -17,11 +20,11 @@ private:
 	int nonce;
 	int transaction_amount;
 	std::vector<Transaction> t_list;
-	
-	//Generates a sha256 hash of this block
-	std::string GenerateHash();
+
 public:
-	Block(/* args */);
+	Block();
+	Block(char* prev_hash, char* hash, int nonce, int transaction_amount, std::vector<Transaction> t_list);
+
 	~Block();
 
 	char* GetPrevHash();
@@ -33,12 +36,6 @@ public:
 
 	void Marshal(char* buffer);
 	void Unmarshal(char* buffer);
-	
-	void AddTransactions(std::vector<Transaction> txn_list);
-	void ResetTransactions();
-	
-	//Generate Proof-of-Work(Returns the sha256 hash that matches the difficulty set)
-	char* GeneratePOW(int difficulty);
 
 	void Print();
 };

@@ -76,3 +76,10 @@ void Transaction::Print() {
 bool Transaction::IsValid() {
 	return (id != -1);
 }
+
+std::string Transaction::ToString() {
+	return std::to_string(id) +
+		   sender +
+		   receiver +
+		   std::to_string(amount);
+}
