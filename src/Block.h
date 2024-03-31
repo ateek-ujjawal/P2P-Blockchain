@@ -39,6 +39,8 @@ public:
 	void Unmarshal(char* buffer);
 
 	void Print();
+	
+	bool IsValid();
 };
 
 #endif

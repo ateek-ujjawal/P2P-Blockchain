@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <thread>
 
@@ -48,6 +49,8 @@ void ServerThread::ServerCommunicate(std::unique_ptr<SSocket> socket) {
 void ServerThread::ServerGenerateBlock() {
 	srand(time(0));
 	int nonce = rand();
+	int response;
+	
 	while (true) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 		{
@@ -60,16 +63,32 @@ void ServerThread::ServerGenerateBlock() {
 
 		if (!cur_txns.empty()) {
 			// todo prev hash should get from blockchain
-			auto blk = GenerateBlockByPOW("prev hash", 1, nonce);
-			nonce++;
-			if (blk != nullptr) {
-				// todo got the block, link to blockchain
-
-				// regenerate the nonce
-				nonce = rand();
-
-				cur_txns.clear();
+			Block *blk = nullptr;
+			while (blk == nullptr) {
+				blk = GenerateBlockByPOW("prev hash", 1, nonce);
+				nonce++;
 			}
+			Block block = *blk;
+			
+			// todo got the block, link to blockchain
+			
+			
+			for (auto &peer : peer_list) {
+				/* Check if peers are already connected */
+				if (!peer.isConnect) {
+					peer.peerStub.Init(peer.ip, peer.port);
+					peer.peerStub.SendAck(1);
+					peer.isConnect = true;
+				}
+				// Ack 1 means we are sending blocks here
+				peer.peerStub.SendAck(1);
+				response = peer.peerStub.SendBlock(block);
+				// todo need to handle response
+			}
+			
+			// regenerate the nonce
+			nonce = rand();
+			cur_txns.clear();
 		}
 	}
 }
@@ -108,9 +127,11 @@ void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
 			/* Check if peers are already connected */
 			if (!peer.isConnect) {
 				peer.peerStub.Init(peer.ip, peer.port);
-				peer.peerStub.SendAck();
+				peer.peerStub.SendAck(1);
 				peer.isConnect = true;
 			}
+			// Ack 0 means we are sending transactions here
+			peer.peerStub.SendAck(0);
 			response = peer.peerStub.SendTransaction(txn);
 			// todo need to handle response
 		}
@@ -123,18 +144,33 @@ void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
 */
 void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 	Transaction txn;
+	Block blk;
+	int ack;
 	txn.SetTransaction(0, NULL, 0, NULL, 0, 0);
 
 	while (true) {
-		txn = stub->ReceiveTransaction();
-		if (!txn.IsValid())
-			break;
+		ack = stub->ReceiveAck();
+		if(ack == 0) {
+			txn = stub->ReceiveTransaction();
+			if (!txn.IsValid())
+				break;
 
-		// std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
-		txn.Print();
-		{
-			std::lock_guard<std::mutex> lock(pending_txn_mtx);
-			pending_txn.push(txn);
+			// std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
+			txn.Print();
+			{
+				std::lock_guard<std::mutex> lock(pending_txn_mtx);
+				pending_txn.push(txn);
+			}
+		} else if (ack == 1) {
+			/* Received a block */
+			blk = stub->ReceiveBlock();
+			
+			if (!blk.IsValid())
+				break;
+			
+			std::cout << "Received block" << std::endl;
+			blk.Print();
+			/* TODO: blockchain logic will go here */
 		}
 	}
 }

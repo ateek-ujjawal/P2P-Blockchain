@@ -6,6 +6,7 @@
 #include <iostream>
 
 Block::Block(/* args */) {
+	nonce = -1;
 }
 
 Block::Block(char* prev_hash, char* hash, int nonce, int transaction_amount, std::vector<Transaction> t_list) {
@@ -26,7 +27,7 @@ int Block::GetTransactionAmount() { return transaction_amount; }
 std::vector<Transaction> Block::GetTList() { return t_list; }
 
 int Block::GetSize() {
-	int size = HASH_LENGTH + sizeof(nonce);
+	int size = HASH_LENGTH + sizeof(nonce) + sizeof(transaction_amount);
 	for (auto& txn : t_list) {
 		size += txn.GetSize();
 	}
@@ -49,7 +50,7 @@ void Block::Marshal(char* buffer) {
 	for (auto& txn : t_list) {
 		int t_size = txn.GetSize();
 		char t_buffer[t_size];
-		txn.Marshal(buffer);
+		txn.Marshal(t_buffer);
 		memcpy(buffer + offset, t_buffer, t_size);
 		offset += t_size;
 	}
@@ -75,6 +76,10 @@ void Block::Unmarshal(char* buffer) {
 		offset += txn.GetSize();
 		t_list.push_back(txn);
 	}
+}
+
+bool Block::IsValid() {
+	return (nonce != -1);
 }
 
 void Block::Print() {

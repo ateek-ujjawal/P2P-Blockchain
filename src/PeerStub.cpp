@@ -22,13 +22,22 @@ int PeerStub::SendTransaction(Transaction txn) {
 
 int PeerStub::SendBlock(Block blk) {
 	int sz = blk.GetSize();
-	char buffer[BLOCK_MAX_SIZE];
-	blk.Marshal(buffer);
-	return socket.Send(buffer, sz, 0);
+	int net_sz = htonl(sz);
+	char sizebuf[4];
+	
+	memcpy(sizebuf, &net_sz, sizeof(net_sz));
+	int response = socket.Send(sizebuf, sizeof(net_sz), 0);
+	
+	if(response != 0) {
+		Block b = blk;
+		char buffer[BLOCK_MAX_SIZE];
+		blk.Marshal(buffer);
+		return socket.Send(buffer, sz, 0);
+	} else 
+		return response;
 }
 
-int PeerStub::SendAck() {
-	int ack = 1;
+int PeerStub::SendAck(int ack) {
 	int size = 4;
 	char buffer[size];
 

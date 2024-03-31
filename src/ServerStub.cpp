@@ -14,8 +14,8 @@ int ServerStub::ReceiveAck() {
 	char buffer[4];
 	int ack = -1;
 
-	if (socket->Recv(buffer, sizeof(int), 0)) {
-		memcpy(&ack, buffer, sizeof(int));
+	if (socket->Recv(buffer, sizeof(ack), 0)) {
+		memcpy(&ack, buffer, sizeof(ack));
 		ack = ntohl(ack);
 	}
 
@@ -34,11 +34,21 @@ Transaction ServerStub::ReceiveTransaction() {
 }
 
 Block ServerStub::ReceiveBlock() {
-	char buffer[BLOCK_MAX_SIZE];
+	char sizebuf[4];
+	int size = -1;
 	Block blk;
-
-	if (socket->Recv(buffer, BLOCK_MAX_SIZE, 0)) {
-		blk.Unmarshal(buffer);
+	
+	if (socket->Recv(sizebuf, sizeof(size), 0)) {
+		memcpy(&size, sizebuf, sizeof(size));
+		size = ntohl(size);
+	}
+	
+	if (size != -1) {
+		char buffer[size];
+	
+		if (socket->Recv(buffer, size, 0)) {
+			blk.Unmarshal(buffer);
+		}
 	}
 
 	return blk;

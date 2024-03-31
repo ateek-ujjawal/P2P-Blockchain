@@ -15,7 +15,7 @@ public:
 	int Init(std::string ip, int port);
 	int SendTransaction(Transaction txn);
 	int SendBlock(Block blk);
-	int SendAck();
+	int SendAck(int ack);
 };
 
 #endif
