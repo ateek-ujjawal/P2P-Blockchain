@@ -3,7 +3,11 @@
 #include <algorithm>
 
 BlockChain::BlockChain(/* args */) {
-	last_ele = nullptr;
+	Block *first_blk = new Block("", "ThisIsFirstBlock", 0, 0, {});
+	BlockChain_Ele *first_ele = new BlockChain_Ele;
+	first_ele->level = 0;
+	first_ele->blk = first_blk;
+	last_ele = first_ele;
 }
 
 BlockChain::~BlockChain() {
@@ -16,11 +20,10 @@ std::vector<Block *> BlockChain::GetMainChain() {
 	while (last) {
 		chain.emplace_back(last->blk);
 		std::string prev_hash = last->blk->GetPrevHash();
-		if (blk_mp.count(prev_hash)) {
-			last = blk_mp[prev_hash];
-		} else {
+		if (!blk_mp.count(prev_hash)) {
 			break;
 		}
+		last = blk_mp[prev_hash];
 	}
 
 	std::reverse(chain.begin(), chain.end());
@@ -52,4 +55,8 @@ bool BlockChain::AddBlock(Block *blk) {
 	}
 
 	return true;
+}
+
+char *BlockChain::GetLastHash() {
+	return last_ele->blk->GetHash();
 }

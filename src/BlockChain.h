@@ -24,6 +24,7 @@ public:
 	~BlockChain();
 	std::vector<Block *> GetMainChain();
 	bool AddBlock(Block *blk);
+	char *GetLastHash();
 };
 
 #endif
