@@ -27,7 +27,7 @@ int Block::GetTransactionAmount() { return transaction_amount; }
 std::vector<Transaction> Block::GetTList() { return t_list; }
 
 int Block::GetSize() {
-	int size = HASH_LENGTH + sizeof(nonce) + sizeof(transaction_amount);
+	int size = 2 * HASH_LENGTH + sizeof(nonce) + sizeof(transaction_amount);
 	for (auto& txn : t_list) {
 		size += txn.GetSize();
 	}
@@ -41,6 +41,8 @@ void Block::Marshal(char* buffer) {
 	int offset = 0;
 
 	memcpy(buffer + offset, prev_hash, HASH_LENGTH);
+	offset += HASH_LENGTH;
+	memcpy(buffer + offset, hash, HASH_LENGTH);
 	offset += HASH_LENGTH;
 	memcpy(buffer + offset, &net_nonce, sizeof(net_nonce));
 	offset += sizeof(net_nonce);
@@ -60,7 +62,9 @@ void Block::Unmarshal(char* buffer) {
 	int net_transaction_amount;
 	int offset = 0;
 
-	memcpy(prev_hash, buffer + offset, sizeof(HASH_LENGTH));
+	memcpy(prev_hash, buffer + offset, HASH_LENGTH);
+	offset += HASH_LENGTH;
+	memcpy(hash, buffer + offset, HASH_LENGTH);
 	offset += HASH_LENGTH;
 	memcpy(&net_nonce, buffer + offset, sizeof(net_nonce));
 	offset += sizeof(net_nonce);
@@ -83,8 +87,9 @@ bool Block::IsValid() {
 }
 
 void Block::Print() {
-	std::cout << "prev_hash " << prev_hash << " ";
-	std::cout << "nonce " << nonce << " ";
+	std::cout << "prev_hash " << prev_hash << std::endl;
+	std::cout << "hash " << hash << std::endl;
+	std::cout << "nonce " << nonce << std::endl;
 	std::cout << "transactions " << std::endl;
 	for (auto& txn : t_list) {
 		txn.Print();

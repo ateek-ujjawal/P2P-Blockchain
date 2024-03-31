@@ -63,32 +63,29 @@ void ServerThread::ServerGenerateBlock() {
 
 		if (!cur_txns.empty()) {
 			// todo prev hash should get from blockchain
-			Block *blk = nullptr;
-			while (blk == nullptr) {
-				blk = GenerateBlockByPOW("prev hash", 1, nonce);
-				nonce++;
-			}
-			Block block = *blk;
+			auto blk = GenerateBlockByPOW("prev hash", 1, nonce);
+			nonce++;
 			
 			// todo got the block, link to blockchain
 			
-			
-			for (auto &peer : peer_list) {
-				/* Check if peers are already connected */
-				if (!peer.isConnect) {
-					peer.peerStub.Init(peer.ip, peer.port);
+			if (blk != nullptr) {
+				for (auto &peer : peer_list) {
+					/* Check if peers are already connected */
+					if (!peer.isConnect) {
+						peer.peerStub.Init(peer.ip, peer.port);
+						peer.peerStub.SendAck(1);
+						peer.isConnect = true;
+					}
+					// Ack 1 means we are sending blocks here
 					peer.peerStub.SendAck(1);
-					peer.isConnect = true;
+					response = peer.peerStub.SendBlock(*blk);
+					// todo need to handle response
 				}
-				// Ack 1 means we are sending blocks here
-				peer.peerStub.SendAck(1);
-				response = peer.peerStub.SendBlock(block);
-				// todo need to handle response
+				
+				// regenerate the nonce
+				nonce = rand();
+				cur_txns.clear();
 			}
-			
-			// regenerate the nonce
-			nonce = rand();
-			cur_txns.clear();
 		}
 	}
 }
