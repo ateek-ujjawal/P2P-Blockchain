@@ -24,6 +24,7 @@ private:
 	std::queue<Transaction> pending_txn;
 	std::vector<Transaction> cur_txns;
 	std::mutex pending_txn_mtx;
+	std::mutex blockchain_mtx;
 
 	void HandleClient(std::unique_ptr<ServerStub> stub);
 	void HandlePeer(std::unique_ptr<ServerStub> stub);

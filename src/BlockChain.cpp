@@ -8,6 +8,7 @@ BlockChain::BlockChain(/* args */) {
 	first_ele->level = 0;
 	first_ele->blk = first_blk;
 	last_ele = first_ele;
+	blk_mp[first_blk->GetHash()] = first_ele;
 }
 
 BlockChain::~BlockChain() {

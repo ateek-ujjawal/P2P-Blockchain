@@ -1,3 +1,4 @@
+#include "BlockChain.h"
 #include "ServerThread.h"
 
 #include <time.h>
@@ -9,6 +10,8 @@
 #include <thread>
 
 #include "sha256.h"
+
+BlockChain chain;
 
 ServerThread::ServerThread(/* args */) {
 }
@@ -63,12 +66,22 @@ void ServerThread::ServerGenerateBlock() {
 
 		if (!cur_txns.empty()) {
 			// todo prev hash should get from blockchain
-			auto blk = GenerateBlockByPOW("prev hash", 1, nonce);
+			char *prev_hash;
+			{
+				std::lock_guard<std::mutex> bc_lock(blockchain_mtx);
+				prev_hash = chain.GetLastHash();
+			}
+				
+			auto blk = GenerateBlockByPOW(prev_hash, 1, nonce);
 			nonce++;
 			
-			// todo got the block, link to blockchain
-			
 			if (blk != nullptr) {
+				{
+					std::lock_guard<std::mutex> lock(blockchain_mtx);
+					if(chain.AddBlock(blk))
+						std::cout << "Block added to the chain with last hash: " << chain.GetLastHash() << std::endl;
+				}
+			
 				for (auto &peer : peer_list) {
 					/* Check if peers are already connected */
 					if (!peer.isConnect) {
@@ -86,6 +99,7 @@ void ServerThread::ServerGenerateBlock() {
 				nonce = rand();
 				cur_txns.clear();
 			}
+			
 		}
 	}
 }
@@ -167,7 +181,12 @@ void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 			
 			std::cout << "Received block" << std::endl;
 			blk.Print();
-			/* TODO: blockchain logic will go here */
+
+			{
+				std::lock_guard<std::mutex> lock(blockchain_mtx);
+				if(chain.AddBlock(&blk))
+					std::cout << "Block added to the chain with last hash: " << chain.GetLastHash() << std::endl;
+			}
 		}
 	}
 }
