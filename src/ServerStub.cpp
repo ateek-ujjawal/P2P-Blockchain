@@ -44,7 +44,7 @@ Block ServerStub::ReceiveBlock() {
 	}
 	
 	if (size != -1) {
-		char buffer[size];
+		char *buffer = new char[size];
 	
 		if (socket->Recv(buffer, size, 0)) {
 			blk.Unmarshal(buffer);
