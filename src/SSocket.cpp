@@ -24,6 +24,8 @@ bool SSocket::Init(int port) {
 		perror("ERROR: failed to create a socket");
 		return false;
 	}
+	int yes = 1;
+	setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 
 	memset(&addr, '\0', sizeof(addr));
 	addr.sin_family = AF_INET;

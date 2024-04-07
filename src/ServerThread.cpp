@@ -53,7 +53,11 @@ void ServerThread::ServerGenerateBlock() {
 	srand(time(0));
 	int nonce = rand();
 	int response;
-	//char *prev_hash = chain.GetLastHash();
+	char *prev_hash;
+	{
+		std::lock_guard<std::mutex> bc_lock(blockchain_mtx);
+		prev_hash = chain.GetLastHash();
+	}
 	
 	while (true) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -66,21 +70,16 @@ void ServerThread::ServerGenerateBlock() {
 		}
 
 		if (!cur_txns.empty()) {
-			// todo prev hash should get from blockchain
-
-			{
-				std::lock_guard<std::mutex> bc_lock(blockchain_mtx);
-				prev_hash = chain.GetLastHash();
-			}
-				
 			auto blk = GenerateBlockByPOW(prev_hash, 1, nonce);
 			nonce++;
 			
 			if (blk != nullptr) {
 				{
 					std::lock_guard<std::mutex> lock(blockchain_mtx);
-					if(chain.AddBlock(blk))
-						std::cout << "Block added to the chain with last hash: " << chain.GetLastHash() << std::endl;
+					if(chain.AddBlock(blk)) {
+						prev_hash = chain.GetLastHash();
+						std::cout << "Block added to the chain, last block hash now is: " << chain.GetLastHash() << std::endl;
+					}
 				}
 			
 				for (auto &peer : peer_list) {
@@ -227,7 +226,7 @@ void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 			{
 				std::lock_guard<std::mutex> lock(blockchain_mtx);
 				if(chain.AddBlock(&blk))
-					std::cout << "Block added to the chain with last hash: " << chain.GetLastHash() << std::endl;
+					std::cout << "Block added to the chain, last hash now is: " << chain.GetLastHash() << std::endl;
 			}
 		} else
 			break;
