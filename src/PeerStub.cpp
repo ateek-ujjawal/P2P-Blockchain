@@ -17,7 +17,7 @@ int PeerStub::Init(std::string ip, int port) {
 int PeerStub::SendTransaction(Transaction txn) {
 	char buffer[48];
 	txn.Marshal(buffer);
-	return socket.Send(buffer, txn.GetSize(), 0);
+	return socket.Send(buffer, txn.GetSize(), MSG_NOSIGNAL);
 }
 
 int PeerStub::SendBlock(Block blk) {
@@ -26,13 +26,13 @@ int PeerStub::SendBlock(Block blk) {
 	char sizebuf[4];
 	
 	memcpy(sizebuf, &net_sz, sizeof(net_sz));
-	int response = socket.Send(sizebuf, sizeof(net_sz), 0);
+	int response = socket.Send(sizebuf, sizeof(net_sz), MSG_NOSIGNAL);
 	
-	if(response != 0) {
+	if(response) {
 		Block b = blk;
 		char buffer[BLOCK_MAX_SIZE];
 		blk.Marshal(buffer);
-		return socket.Send(buffer, sz, 0);
+		return socket.Send(buffer, sz, MSG_NOSIGNAL);
 	} else 
 		return response;
 }
@@ -43,5 +43,5 @@ int PeerStub::SendAck(int ack) {
 
 	int net_ack = htonl(ack);
 	memcpy(buffer, &net_ack, sizeof(net_ack));
-	return socket.Send(buffer, size, 0);
+	return socket.Send(buffer, size, MSG_NOSIGNAL);
 }

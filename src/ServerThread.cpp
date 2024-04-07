@@ -53,6 +53,7 @@ void ServerThread::ServerGenerateBlock() {
 	srand(time(0));
 	int nonce = rand();
 	int response;
+	//char *prev_hash = chain.GetLastHash();
 	
 	while (true) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -66,7 +67,7 @@ void ServerThread::ServerGenerateBlock() {
 
 		if (!cur_txns.empty()) {
 			// todo prev hash should get from blockchain
-			char *prev_hash;
+
 			{
 				std::lock_guard<std::mutex> bc_lock(blockchain_mtx);
 				prev_hash = chain.GetLastHash();
@@ -83,15 +84,35 @@ void ServerThread::ServerGenerateBlock() {
 				}
 			
 				for (auto &peer : peer_list) {
-					/* Check if peers are already connected */
+					/* Check if peers are already connected and send the blockchain if not connected */
 					if (!peer.isConnect) {
-						peer.peerStub.Init(peer.ip, peer.port);
-						peer.peerStub.SendAck(1);
-						peer.isConnect = true;
+						peer.isConnect = peer.peerStub.Init(peer.ip, peer.port);
+						if(peer.isConnect) {
+							peer.isConnect = peer.peerStub.SendAck(1);
+							if(peer.isConnect) {
+								std::vector<Block *> mainChain;
+								{
+									std::lock_guard<std::mutex> bc_lock(blockchain_mtx);
+									mainChain = chain.GetMainChain();
+								}
+								
+								mainChain.erase(mainChain.begin());
+								for(auto blk: mainChain) {
+									peer.isConnect = peer.peerStub.SendAck(1);
+									if(peer.isConnect)
+										peer.isConnect = peer.peerStub.SendBlock(*blk);
+									else
+										break;
+								}
+							}
+						}
 					}
-					// Ack 1 means we are sending blocks here
-					peer.peerStub.SendAck(1);
-					response = peer.peerStub.SendBlock(*blk);
+					if(peer.isConnect) {
+						// Ack 1 means we are sending blocks here
+						peer.isConnect = peer.peerStub.SendAck(1);
+						if(peer.isConnect)
+							peer.isConnect = peer.peerStub.SendBlock(*blk);
+					}
 					// todo need to handle response
 				}
 				
@@ -135,15 +156,36 @@ void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
 
 		/* Multicast transaction to all peers */
 		for (auto &peer : peer_list) {
-			/* Check if peers are already connected */
+			/* Check if peers are already connected and send the blockchain if not connected*/
 			if (!peer.isConnect) {
-				peer.peerStub.Init(peer.ip, peer.port);
-				peer.peerStub.SendAck(1);
-				peer.isConnect = true;
+				peer.isConnect = peer.peerStub.Init(peer.ip, peer.port);
+				if(peer.isConnect) {
+					peer.isConnect = peer.peerStub.SendAck(1);
+					if(peer.isConnect) {
+						std::vector<Block *> mainChain;
+						{
+							std::lock_guard<std::mutex> bc_lock(blockchain_mtx);
+							mainChain = chain.GetMainChain();
+						}
+						
+						mainChain.erase(mainChain.begin());
+						for(auto blk: mainChain) {
+							peer.isConnect = peer.peerStub.SendAck(1);
+							if(peer.isConnect)
+								peer.isConnect = peer.peerStub.SendBlock(*blk);
+							else
+								break;
+						}
+					}
+				}
 			}
-			// Ack 0 means we are sending transactions here
-			peer.peerStub.SendAck(0);
-			response = peer.peerStub.SendTransaction(txn);
+			if(peer.isConnect) {
+				// Ack 0 means we are sending transactions here
+				peer.isConnect = peer.peerStub.SendAck(0);
+				if(peer.isConnect)
+					peer.isConnect = peer.peerStub.SendTransaction(txn);
+			}
+
 			// todo need to handle response
 		}
 	}
@@ -187,7 +229,8 @@ void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 				if(chain.AddBlock(&blk))
 					std::cout << "Block added to the chain with last hash: " << chain.GetLastHash() << std::endl;
 			}
-		}
+		} else
+			break;
 	}
 }
 

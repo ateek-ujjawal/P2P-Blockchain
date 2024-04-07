@@ -13,7 +13,7 @@ int ClientStub::Init(std::string ip, int port) {
 int ClientStub::SendTransaction(Transaction txn) {
 	char buffer[48];
 	txn.Marshal(buffer);
-	return socket.Send(buffer, txn.GetSize(), 0);
+	return socket.Send(buffer, txn.GetSize(), MSG_NOSIGNAL);
 }
 
 int ClientStub::SendAck() {
@@ -23,5 +23,5 @@ int ClientStub::SendAck() {
 	
 	int net_ack = htonl(ack);
 	memcpy(buffer, &net_ack, sizeof(net_ack));
-	return socket.Send(buffer, size, 0);
+	return socket.Send(buffer, size, MSG_NOSIGNAL);
 }
