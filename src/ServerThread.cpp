@@ -78,7 +78,7 @@ void ServerThread::ServerGenerateBlock() {
 					std::lock_guard<std::mutex> lock(blockchain_mtx);
 					if(chain.AddBlock(blk)) {
 						prev_hash = chain.GetLastHash();
-						std::cout << "Block added to the chain, last block hash now is: " << chain.GetLastHash() << std::endl;
+						std::cout << "Block added to the chain, last block hash now is: " << prev_hash << std::endl;
 					}
 				}
 			
@@ -226,7 +226,7 @@ void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 			{
 				std::lock_guard<std::mutex> lock(blockchain_mtx);
 				if(chain.AddBlock(&blk))
-					std::cout << "Block added to the chain, last hash now is: " << chain.GetLastHash() << std::endl;
+					std::cout << "Block added to the chain, last block hash now is: " << chain.GetLastHash() << std::endl;
 			}
 		} else
 			break;
