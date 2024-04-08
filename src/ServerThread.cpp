@@ -1,4 +1,3 @@
-#include "BlockChain.h"
 #include "ServerThread.h"
 
 #include <time.h>
@@ -10,8 +9,6 @@
 #include <thread>
 
 #include "sha256.h"
-
-BlockChain chain;
 
 ServerThread::ServerThread(/* args */) {
 }
@@ -58,7 +55,7 @@ void ServerThread::ServerGenerateBlock() {
 		std::lock_guard<std::mutex> bc_lock(blockchain_mtx);
 		prev_hash = chain.GetLastHash();
 	}
-	
+
 	while (true) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 		{
@@ -72,54 +69,34 @@ void ServerThread::ServerGenerateBlock() {
 		if (!cur_txns.empty()) {
 			auto blk = GenerateBlockByPOW(prev_hash, 1, nonce);
 			nonce++;
-			
+
 			if (blk != nullptr) {
 				{
 					std::lock_guard<std::mutex> lock(blockchain_mtx);
-					if(chain.AddBlock(blk)) {
+					if (chain.AddBlock(blk)) {
 						prev_hash = chain.GetLastHash();
 						std::cout << "Block added to the chain, last block hash now is: " << prev_hash << std::endl;
 					}
 				}
-			
+
 				for (auto &peer : peer_list) {
 					/* Check if peers are already connected and send the blockchain if not connected */
 					if (!peer.isConnect) {
-						peer.isConnect = peer.peerStub.Init(peer.ip, peer.port);
-						if(peer.isConnect) {
-							peer.isConnect = peer.peerStub.SendAck(1);
-							if(peer.isConnect) {
-								std::vector<Block *> mainChain;
-								{
-									std::lock_guard<std::mutex> bc_lock(blockchain_mtx);
-									mainChain = chain.GetMainChain();
-								}
-								
-								mainChain.erase(mainChain.begin());
-								for(auto blk: mainChain) {
-									peer.isConnect = peer.peerStub.SendAck(1);
-									if(peer.isConnect)
-										peer.isConnect = peer.peerStub.SendBlock(*blk);
-									else
-										break;
-								}
-							}
-						}
+						peer.isConnect = HandleRecover(peer);
 					}
-					if(peer.isConnect) {
+					if (peer.isConnect) {
 						// Ack 1 means we are sending blocks here
-						peer.isConnect = peer.peerStub.SendAck(1);
-						if(peer.isConnect)
-							peer.isConnect = peer.peerStub.SendBlock(*blk);
+						if (!peer.peerStub.SendAck(1) || !peer.peerStub.SendBlock(*blk)) {
+							peer.isConnect = false;
+						}
 					}
 					// todo need to handle response
 				}
-				
+
 				// regenerate the nonce
 				nonce = rand();
 				cur_txns.clear();
 			}
-			
 		}
 	}
 }
@@ -157,32 +134,13 @@ void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
 		for (auto &peer : peer_list) {
 			/* Check if peers are already connected and send the blockchain if not connected*/
 			if (!peer.isConnect) {
-				peer.isConnect = peer.peerStub.Init(peer.ip, peer.port);
-				if(peer.isConnect) {
-					peer.isConnect = peer.peerStub.SendAck(1);
-					if(peer.isConnect) {
-						std::vector<Block *> mainChain;
-						{
-							std::lock_guard<std::mutex> bc_lock(blockchain_mtx);
-							mainChain = chain.GetMainChain();
-						}
-						
-						mainChain.erase(mainChain.begin());
-						for(auto blk: mainChain) {
-							peer.isConnect = peer.peerStub.SendAck(1);
-							if(peer.isConnect)
-								peer.isConnect = peer.peerStub.SendBlock(*blk);
-							else
-								break;
-						}
-					}
-				}
+				peer.isConnect = HandleRecover(peer);
 			}
-			if(peer.isConnect) {
+			if (peer.isConnect) {
 				// Ack 0 means we are sending transactions here
-				peer.isConnect = peer.peerStub.SendAck(0);
-				if(peer.isConnect)
-					peer.isConnect = peer.peerStub.SendTransaction(txn);
+				if (!peer.peerStub.SendAck(0) || !peer.peerStub.SendTransaction(txn)) {
+					peer.isConnect = false;
+				}
 			}
 
 			// todo need to handle response
@@ -202,34 +160,39 @@ void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 
 	while (true) {
 		ack = stub->ReceiveAck();
-		if(ack == 0) {
+		switch (ack) {
+		case 0: {
 			txn = stub->ReceiveTransaction();
 			if (!txn.IsValid())
 				break;
 
-			// std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
 			txn.Print();
 			{
 				std::lock_guard<std::mutex> lock(pending_txn_mtx);
 				pending_txn.push(txn);
 			}
-		} else if (ack == 1) {
+			break;
+		}
+		case 1: {
 			/* Received a block */
 			blk = stub->ReceiveBlock();
-			
+
 			if (!blk.IsValid())
 				break;
-			
+
 			std::cout << "Received block" << std::endl;
 			blk.Print();
 
 			{
 				std::lock_guard<std::mutex> lock(blockchain_mtx);
-				if(chain.AddBlock(&blk))
+				if (chain.AddBlock(&blk))
 					std::cout << "Block added to the chain, last block hash now is: " << chain.GetLastHash() << std::endl;
 			}
-		} else
 			break;
+		}
+		default:
+			return;
+		}
 	}
 }
 
@@ -251,4 +214,26 @@ Block *ServerThread::GenerateBlockByPOW(char *prev_hash, int difficulty, int non
 	}
 
 	return blk;
+}
+
+bool ServerThread::HandleRecover(Peer &p) {
+	if (!p.peerStub.Init(p.ip, p.port) || !p.peerStub.SendAck(1)) {
+		return false;
+	}
+
+	std::vector<Block *> mainChain;
+	{
+		std::lock_guard<std::mutex> bc_lock(blockchain_mtx);
+		mainChain = chain.GetMainChain();
+	}
+
+	mainChain.erase(mainChain.begin());
+
+	for (auto &blk : mainChain) {
+		if (!p.peerStub.SendAck(1) || !p.peerStub.SendBlock(*blk)) {
+			return false;
+		}
+	}
+
+	return true;
 }

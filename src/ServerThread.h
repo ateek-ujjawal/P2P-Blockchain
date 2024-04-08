@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "BlockChain.h"
 #include "PeerStub.h"
 #include "SSocket.h"
 #include "ServerStub.h"
@@ -23,12 +24,14 @@ private:
 	std::vector<Peer> peer_list;
 	std::queue<Transaction> pending_txn;
 	std::vector<Transaction> cur_txns;
+	BlockChain chain;
 	std::mutex pending_txn_mtx;
 	std::mutex blockchain_mtx;
 
 	void HandleClient(std::unique_ptr<ServerStub> stub);
 	void HandlePeer(std::unique_ptr<ServerStub> stub);
 	Block *GenerateBlockByPOW(char *prev_hash, int difficulty, int nonce);
+	bool HandleRecover(Peer &p);
 
 public:
 	ServerThread(/* args */);
