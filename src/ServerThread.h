@@ -28,7 +28,8 @@ private:
 	std::mutex pending_txn_mtx;
 	std::mutex blockchain_mtx;
 
-	void HandleClient(std::unique_ptr<ServerStub> stub);
+	void HandleClientTransaction(std::unique_ptr<ServerStub> stub);
+	void HandleClientReadChain(std::unique_ptr<ServerStub> stub);
 	void HandlePeer(std::unique_ptr<ServerStub> stub);
 	Block *GenerateBlockByPOW(char *prev_hash, int difficulty, int nonce);
 	bool HandleRecover(Peer &p);

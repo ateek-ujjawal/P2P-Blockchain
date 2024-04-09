@@ -2,6 +2,7 @@
 #define __SERVER_STUB_H__
 
 #include <memory>
+#include <vector>
 
 #include "Block.h"
 #include "SSocket.h"
@@ -17,6 +18,7 @@ public:
 	Transaction ReceiveTransaction();
 	Block ReceiveBlock();
 	int ReceiveAck();
+	int SendChain(std::vector<Block *> chain);
 };
 
 #endif	// end of #ifndef __SERVER_STUB_H__

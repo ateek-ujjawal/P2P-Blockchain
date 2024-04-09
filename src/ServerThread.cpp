@@ -10,11 +10,9 @@
 
 #include "sha256.h"
 
-ServerThread::ServerThread(/* args */) {
-}
+ServerThread::ServerThread(/* args */) {}
 
-ServerThread::~ServerThread() {
-}
+ServerThread::~ServerThread() {}
 
 void ServerThread::SetPeers(int cnt, char *argv[]) {
 	int idx = 0;
@@ -35,8 +33,11 @@ void ServerThread::ServerCommunicate(std::unique_ptr<SSocket> socket) {
 
 	ackResponse = stub->ReceiveAck();
 	switch (ackResponse) {
-	case 0:
-		HandleClient(std::move(stub));
+	case 10:
+		HandleClientTransaction(std::move(stub));
+		break;
+	case 11:
+		HandleClientReadChain(std::move(stub));
 		break;
 	case 1:
 		HandlePeer(std::move(stub));
@@ -90,7 +91,6 @@ void ServerThread::ServerGenerateBlock() {
 							peer.isConnect = false;
 						}
 					}
-					// todo need to handle response
 				}
 
 				// regenerate the nonce
@@ -102,7 +102,7 @@ void ServerThread::ServerGenerateBlock() {
 }
 
 /* Respond to client requests */
-void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
+void ServerThread::HandleClientTransaction(std::unique_ptr<ServerStub> stub) {
 	Transaction txn;
 	txn.SetTransaction(0, NULL, 0, NULL, 0, 0);
 	int response;
@@ -114,21 +114,11 @@ void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
 			break;
 
 		/* Print transaction(do something with the transaction) */
-		// std::cout << txn.GetSender() << " " << txn.GetReceiver() << " " << txn.GetAmount() << std::endl;
 		txn.Print();
 		{
 			std::lock_guard<std::mutex> lock(pending_txn_mtx);
 			pending_txn.push(txn);
 		}
-
-		// /* Check if peers are already connected */
-		// if (peers.empty()) {
-		// 	for (unsigned long i = 0; i < peer_list.size(); i++) {
-		// 		peers.push_back(peerSocket.Init(peer_list[i].ip, peer_list[i].port));
-		// 		if (peers[i])
-		// 			peers[i]->SendAck();
-		// 	}
-		// }
 
 		/* Multicast transaction to all peers */
 		for (auto &peer : peer_list) {
@@ -142,10 +132,12 @@ void ServerThread::HandleClient(std::unique_ptr<ServerStub> stub) {
 					peer.isConnect = false;
 				}
 			}
-
-			// todo need to handle response
 		}
 	}
+}
+
+void ServerThread::HandleClientReadChain(std::unique_ptr<ServerStub> stub) {
+	stub->SendChain(chain.GetMainChain());
 }
 
 /* Respond to peer requests */

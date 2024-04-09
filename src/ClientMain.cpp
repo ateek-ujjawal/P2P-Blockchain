@@ -23,11 +23,19 @@ void sendTransactions(int transactions, int amount) {
 
 /* Read blockchain copy of the provided server */
 void readBlockchain() {
+	auto chain = clientStub.ReadBlockChain();
+
+	for (auto &blk : chain) {
+		blk.Print();
+		printf("\n\n");
+	}
 }
 
 int main(int argc, char *argv[]) {
 	if (argc < 4) {
-		std::cerr << "usage: ./client [hostname/ip addr] [port] [request type] [transactions(for type 0)] [amount(for type 0)]" << std::endl;
+		std::cerr << "usage: ./client [hostname/ip addr] [port] "
+				  << "[request type (0 - send transactions, 1 - read chain from server)] "
+				  << "[transactions(for type 0)] [amount(for type 0)]" << std::endl;
 		exit(1);
 	}
 
@@ -37,15 +45,24 @@ int main(int argc, char *argv[]) {
 
 	/* Connect to peer server and send client side acknowledgement */
 	clientStub.Init(ip, port);
-	clientStub.SendAck();
 
 	/* Request type 0 for sending transactions and 1 for reading the blockchain */
-	if (type == 0) {
+	switch (type) {
+	case 0: {
+		/* code */
 		int transactions = atoi(argv[4]);
 		int amount = atoi(argv[5]);
+		clientStub.SendAck(10);
 		sendTransactions(transactions, amount);
-	} else
+		break;
+	}
+	case 1: {
+		clientStub.SendAck(11);
 		readBlockchain();
+	}
+	default:
+		break;
+	}
 
-	return 1;
+	return 0;
 }

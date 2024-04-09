@@ -24,22 +24,21 @@ int PeerStub::SendBlock(Block blk) {
 	int sz = blk.GetSize();
 	int net_sz = htonl(sz);
 	char sizebuf[4];
-	
+
 	memcpy(sizebuf, &net_sz, sizeof(net_sz));
-	int response = socket.Send(sizebuf, sizeof(net_sz), MSG_NOSIGNAL);
-	
-	if(response) {
-		Block b = blk;
-		char buffer[BLOCK_MAX_SIZE];
-		blk.Marshal(buffer);
-		return socket.Send(buffer, sz, MSG_NOSIGNAL);
-	} else 
-		return response;
+
+	if (!socket.Send(sizebuf, sizeof(net_sz), MSG_NOSIGNAL)) {
+		return 0;
+	}
+
+	char buffer[BLOCK_MAX_SIZE];
+	blk.Marshal(buffer);
+	return socket.Send(buffer, sz, MSG_NOSIGNAL);
 }
 
 int PeerStub::SendAck(int ack) {
 	int size = 4;
-	char buffer[size];
+	char buffer[4];
 
 	int net_ack = htonl(ack);
 	memcpy(buffer, &net_ack, sizeof(net_ack));

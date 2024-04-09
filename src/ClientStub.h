@@ -2,7 +2,9 @@
 #define __CLIENT_STUB_H__
 
 #include <string>
+#include <vector>
 
+#include "Block.h"
 #include "CSocket.h"
 #include "Transaction.h"
 
@@ -14,7 +16,8 @@ public:
 	ClientStub();
 	int Init(std::string ip, int port);
 	int SendTransaction(Transaction txn);
-	int SendAck();
+	int SendAck(int ack);
+	std::vector<Block> ReadBlockChain();
 };
 
 #endif	// end of #ifndef __CLIENT_STUB_H__
