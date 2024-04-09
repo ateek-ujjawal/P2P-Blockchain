@@ -164,7 +164,7 @@ void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 		case 0: {
 			txn = stub->ReceiveTransaction();
 			if (!txn.IsValid())
-				break;
+				return;
 
 			txn.Print();
 			{
@@ -178,7 +178,7 @@ void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 			blk = stub->ReceiveBlock();
 
 			if (!blk.IsValid())
-				break;
+				return;
 
 			std::cout << "Received block" << std::endl;
 			blk.Print();
