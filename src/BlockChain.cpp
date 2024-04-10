@@ -1,6 +1,7 @@
 #include "BlockChain.h"
 
 #include <algorithm>
+#include <iostream>
 
 BlockChain::BlockChain(/* args */) {
 	Block *first_blk = new Block("", "ThisIsFirstBlock", 0, 0, {});
@@ -36,7 +37,7 @@ bool BlockChain::AddBlock(Block *blk) {
 	std::string prev_hash = blk->GetPrevHash();
 	BlockChain_Ele *prev_ele = nullptr;
 
-	if (!blk_mp.count(prev_hash)) {
+	if (blk_mp.count(blk->GetHash()) || !blk_mp.count(prev_hash)) {
 		return false;
 	}
 
