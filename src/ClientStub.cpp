@@ -11,7 +11,7 @@ int ClientStub::Init(std::string ip, int port) {
 }
 
 int ClientStub::SendTransaction(Transaction txn) {
-	char buffer[48];
+	char buffer[TXN_SIZE];
 	txn.Marshal(buffer);
 	return socket.Send(buffer, txn.GetSize(), MSG_NOSIGNAL);
 }

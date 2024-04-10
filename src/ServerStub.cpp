@@ -23,7 +23,7 @@ int ServerStub::ReceiveAck() {
 }
 
 Transaction ServerStub::ReceiveTransaction() {
-	char buffer[48];
+	char buffer[TXN_SIZE];
 	Transaction transaction;
 
 	if (socket->Recv(buffer, transaction.GetSize(), MSG_NOSIGNAL)) {
@@ -44,7 +44,7 @@ Block* ServerStub::ReceiveBlock() {
 	}
 
 	if (size != -1) {
-		char *buffer = new char[size + 1];
+		char* buffer = new char[size + 1];
 
 		if (socket->Recv(buffer, size, MSG_NOSIGNAL)) {
 			blk = new Block();
@@ -55,7 +55,7 @@ Block* ServerStub::ReceiveBlock() {
 	return blk;
 }
 
-int ServerStub::SendChain(std::vector<Block *> chain) {
+int ServerStub::SendChain(std::vector<Block*> chain) {
 	for (auto blk : chain) {
 		int sz = blk->GetSize();
 		int net_sz = htonl(sz);
