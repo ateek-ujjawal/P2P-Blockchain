@@ -16,7 +16,7 @@ public:
 	ServerStub();
 	void Init(std::unique_ptr<SSocket> socket);
 	Transaction ReceiveTransaction();
-	Block ReceiveBlock();
+	Block* ReceiveBlock();
 	int ReceiveAck();
 	int SendChain(std::vector<Block *> chain);
 };

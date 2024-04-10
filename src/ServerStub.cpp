@@ -33,10 +33,10 @@ Transaction ServerStub::ReceiveTransaction() {
 	return transaction;
 }
 
-Block ServerStub::ReceiveBlock() {
+Block* ServerStub::ReceiveBlock() {
 	char sizebuf[4];
 	int size = -1;
-	Block blk;
+	Block* blk = nullptr;
 
 	if (socket->Recv(sizebuf, sizeof(size), MSG_NOSIGNAL)) {
 		memcpy(&size, sizebuf, sizeof(size));
@@ -47,7 +47,8 @@ Block ServerStub::ReceiveBlock() {
 		char *buffer = new char[size + 1];
 
 		if (socket->Recv(buffer, size, MSG_NOSIGNAL)) {
-			blk.Unmarshal(buffer);
+			blk = new Block();
+			blk->Unmarshal(buffer);
 		}
 	}
 
