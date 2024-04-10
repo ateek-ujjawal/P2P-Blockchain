@@ -76,7 +76,7 @@ void ServerThread::ServerGenerateBlock() {
 					std::lock_guard<std::mutex> lock(blockchain_mtx);
 					if (chain.AddBlock(blk)) {
 						prev_hash = chain.GetLastHash();
-						std::cout << "Block added to the chain, last block hash now is: " << prev_hash << std::endl;
+						//std::cout << "Block added to the chain, last block hash now is: " << prev_hash << std::endl;
 					}
 				}
 
@@ -147,6 +147,7 @@ void ServerThread::HandleClientReadChain(std::unique_ptr<ServerStub> stub) {
 void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 	Transaction txn;
 	Block blk;
+	Block *blk_ptr;
 	int ack;
 	txn.SetTransaction(0, NULL, 0, NULL, 0, 0);
 
@@ -158,7 +159,7 @@ void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 			if (!txn.IsValid())
 				return;
 
-			txn.Print();
+			//txn.Print();
 			{
 				std::lock_guard<std::mutex> lock(pending_txn_mtx);
 				pending_txn.push(txn);
@@ -168,17 +169,19 @@ void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 		case 1: {
 			/* Received a block */
 			blk = stub->ReceiveBlock();
+			blk_ptr = new Block(blk.GetPrevHash(), blk.GetHash(), blk.GetNonce(), blk.GetTransactionAmount(), blk.GetTList());
 
-			if (!blk.IsValid())
+			if (!blk_ptr->IsValid())
 				return;
 
-			std::cout << "Received block" << std::endl;
-			blk.Print();
+			//std::cout << "Received block" << std::endl;
+			//blk.Print();
 
 			{
 				std::lock_guard<std::mutex> lock(blockchain_mtx);
-				if (chain.AddBlock(&blk))
-					std::cout << "Block added to the chain, last block hash now is: " << chain.GetLastHash() << std::endl;
+				if (chain.AddBlock(blk_ptr)) {
+					//std::cout << "Block added to the chain, last block hash now is: " << chain.GetLastHash() << std::endl;
+				}
 			}
 			break;
 		}
