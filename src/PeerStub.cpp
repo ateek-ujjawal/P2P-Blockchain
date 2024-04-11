@@ -31,7 +31,7 @@ int PeerStub::SendBlock(Block blk) {
 		return 0;
 	}
 
-	char buffer[BLOCK_MAX_SIZE];
+	char *buffer = new char[sz];
 	blk.Marshal(buffer);
 	return socket.Send(buffer, sz, MSG_NOSIGNAL);
 }

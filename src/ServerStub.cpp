@@ -66,7 +66,7 @@ int ServerStub::SendChain(std::vector<Block*> chain) {
 			return 0;
 		}
 
-		char buffer[BLOCK_MAX_SIZE];
+		char* buffer = new char[sz];
 		blk->Marshal(buffer);
 		if (!socket->Send(buffer, sz, 0)) {
 			return 0;

@@ -22,10 +22,9 @@ class ServerThread {
 private:
 	/* data */
 	std::vector<Peer> peer_list;
-	std::queue<Transaction> pending_txn;
 	std::vector<Transaction> cur_txns;
 	BlockChain chain;
-	std::mutex pending_txn_mtx;
+	std::mutex cur_txn_mtx;
 	std::mutex blockchain_mtx;
 
 	void HandleClientTransaction(std::unique_ptr<ServerStub> stub);

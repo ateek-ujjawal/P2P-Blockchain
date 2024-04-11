@@ -8,9 +8,9 @@
 #define HASH_LENGTH 256
 
 // prev_hash(256) + hash(256) + nonce(4) + transaction_amount(4)
-#define BLOCK_MAX_SIZE 4096
+// #define BLOCK_MAX_SIZE 4096
 
-#define MAX_TXN_SIZE ((BLOCK_MAX_SIZE - 2 * HASH_LENGTH - 2 * sizeof(int)) / TXN_SIZE)
+// #define MAX_TXN_SIZE ((BLOCK_MAX_SIZE - 2 * HASH_LENGTH - 2 * sizeof(int)) / TXN_SIZE)
 
 class Block {
 private:
@@ -39,7 +39,7 @@ public:
 	void Unmarshal(char* buffer);
 
 	void Print();
-	
+
 	bool IsValid();
 };
 

@@ -60,42 +60,37 @@ void ServerThread::ServerGenerateBlock() {
 	while (true) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 		{
-			std::lock_guard<std::mutex> lock(pending_txn_mtx);
-			while (cur_txns.size() < MAX_TXN_SIZE && !pending_txn.empty()) {
-				cur_txns.push_back(pending_txn.front());
-				pending_txn.pop();
-			}
-		}
+			std::lock_guard<std::mutex> cur_lock(cur_txn_mtx);
+			if (!cur_txns.empty()) {
+				auto blk = GenerateBlockByPOW(prev_hash, 1, nonce);
+				nonce++;
 
-		if (!cur_txns.empty()) {
-			auto blk = GenerateBlockByPOW(prev_hash, 1, nonce);
-			nonce++;
-
-			if (blk != nullptr) {
-				{
-					std::lock_guard<std::mutex> lock(blockchain_mtx);
-					if (chain.AddBlock(blk)) {
-						prev_hash = chain.GetLastHash();
-						// std::cout << "Block added to the chain, last block hash now is: " << prev_hash << std::endl;
-					}
-				}
-
-				for (auto &peer : peer_list) {
-					/* Check if peers are already connected and send the blockchain if not connected */
-					if (!peer.isConnect) {
-						peer.isConnect = HandleRecover(peer);
-					}
-					if (peer.isConnect) {
-						// Ack 1 means we are sending blocks here
-						if (!peer.peerStub.SendAck(1) || !peer.peerStub.SendBlock(*blk)) {
-							peer.isConnect = false;
+				if (blk != nullptr) {
+					{
+						std::lock_guard<std::mutex> lock(blockchain_mtx);
+						if (chain.AddBlock(blk)) {
+							prev_hash = chain.GetLastHash();
+							// std::cout << "Block added to the chain, last block hash now is: " << prev_hash << std::endl;
 						}
 					}
-				}
 
-				// regenerate the nonce
-				nonce = rand();
-				cur_txns.clear();
+					for (auto &peer : peer_list) {
+						/* Check if peers are already connected and send the blockchain if not connected */
+						if (!peer.isConnect) {
+							peer.isConnect = HandleRecover(peer);
+						}
+						if (peer.isConnect) {
+							// Ack 1 means we are sending blocks here
+							if (!peer.peerStub.SendAck(1) || !peer.peerStub.SendBlock(*blk)) {
+								peer.isConnect = false;
+							}
+						}
+					}
+
+					// regenerate the nonce
+					nonce = rand();
+					cur_txns.clear();
+				}
 			}
 		}
 	}
@@ -116,8 +111,8 @@ void ServerThread::HandleClientTransaction(std::unique_ptr<ServerStub> stub) {
 		/* Print transaction(do something with the transaction) */
 		txn.Print();
 		{
-			std::lock_guard<std::mutex> lock(pending_txn_mtx);
-			pending_txn.push(txn);
+			std::lock_guard<std::mutex> lock(cur_txn_mtx);
+			cur_txns.push_back(txn);
 		}
 
 		/* Multicast transaction to all peers */
@@ -160,8 +155,8 @@ void ServerThread::HandlePeer(std::unique_ptr<ServerStub> stub) {
 
 			// txn.Print();
 			{
-				std::lock_guard<std::mutex> lock(pending_txn_mtx);
-				pending_txn.push(txn);
+				std::lock_guard<std::mutex> lock(cur_txn_mtx);
+				cur_txns.push_back(txn);
 			}
 			break;
 		}
