@@ -58,7 +58,7 @@ void ServerThread::ServerGenerateBlock() {
 	}
 
 	while (true) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		{
 			std::lock_guard<std::mutex> cur_lock(cur_txn_mtx);
 			if (!cur_txns.empty()) {
@@ -109,7 +109,7 @@ void ServerThread::HandleClientTransaction(std::unique_ptr<ServerStub> stub) {
 			break;
 
 		/* Print transaction(do something with the transaction) */
-		txn.Print();
+		// txn.Print();
 		{
 			std::lock_guard<std::mutex> lock(cur_txn_mtx);
 			cur_txns.push_back(txn);
