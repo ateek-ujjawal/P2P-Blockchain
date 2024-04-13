@@ -50,7 +50,6 @@ void ServerThread::ServerCommunicate(std::unique_ptr<SSocket> socket) {
 void ServerThread::ServerGenerateBlock() {
 	srand(time(0));
 	int nonce = rand();
-	int response;
 	char *prev_hash;
 	{
 		std::lock_guard<std::mutex> bc_lock(blockchain_mtx);
@@ -100,7 +99,6 @@ void ServerThread::ServerGenerateBlock() {
 void ServerThread::HandleClientTransaction(std::unique_ptr<ServerStub> stub) {
 	Transaction txn;
 	txn.SetTransaction(0, 0, NULL, 0, NULL, 0, 0);
-	int response;
 
 	while (true) {
 		/* Receive a transaction from a client */

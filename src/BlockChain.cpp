@@ -4,7 +4,9 @@
 #include <iostream>
 
 BlockChain::BlockChain(/* args */) {
-	Block *first_blk = new Block("", "ThisIsFirstBlock", 0, 0, {});
+	char ph[] = "EmptyHash";
+	char h[] = "ThisIsFirstBlock";
+	Block *first_blk = new Block(ph, h, 0, 0, {});
 	BlockChain_Ele *first_ele = new BlockChain_Ele;
 	first_ele->level = 0;
 	first_ele->blk = first_blk;
