@@ -14,7 +14,7 @@ How to run
 -
 - Make sure to have a C++11 based compiler installed on the machine and the machine should be using Linux.
 - Clone the repo.
-- Go to src folder
+- Go to src folder  
   `cd src`
 - Compile the executables:  
   `make all`
