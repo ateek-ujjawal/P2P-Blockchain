@@ -17,7 +17,7 @@ How to run
 - Go to src folder  
   `cd src`
 - Compile the executables:  
-  `make all`
+  `make`
 - Run the server program on the machine which will host the server, for example let's suppose the three servers have ip 10.200.125.71/72/73 and port is set to 11111, then the commands needed would be:
   * On host 10.200.125.71  
     `./server 11111 2 10.200.125.72 11111 10.200.125.73 11111`
