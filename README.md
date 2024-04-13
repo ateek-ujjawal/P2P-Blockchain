@@ -8,7 +8,7 @@ Features implemented
 -
 - Peer-to-peer server client network architecture
 - Blockchain copy on each server that can be read by the client
-- Fault tolerance and recovery for the blockchain.
+- Fault tolerance and recovery for peer server crashes.
 
 How to run
 -
