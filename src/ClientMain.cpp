@@ -34,7 +34,7 @@ void readBlockchain() {
 
 int main(int argc, char *argv[]) {
 	if (argc < 5) {
-		std::cerr << "usage: ./client [hostname/ip addr] [port] [id] "
+		std::cerr << "usage: ./client [ip addr] [port] [id] "
 				  << "[request type (0 - send transactions, 1 - read chain from server)] "
 				  << "[transactions(for type 0)] [amount(for type 0)]" << std::endl;
 		exit(1);
