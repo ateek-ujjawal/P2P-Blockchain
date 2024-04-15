@@ -1,7 +1,7 @@
 Blockchain based peer-to-peer network
 =
-This project is a blockchain based distributed peer-to-peer network. Clients can connect to any peer in the network and send transactions. They can also query for the blockchain and read it.
-We have also implemented fault tolerance and recovery for any peer node in the network. This project is intended to show how real life blockchains reach consensus over a distributed network. 
+Source code for blockchain based distributed peer-to-peer network. Clients can connect to any peer in the network and send transactions. They can also query for the blockchain and read it.
+I have also implemented fault tolerance and recovery for any peer node in the network. This project is intended to show how real life blockchains reach consensus over a distributed network. 
 The project uses SHA256 algorithm from open source and is written entirely in C++11.
 
 Features implemented
@@ -37,5 +37,5 @@ How to run
 
 Fault tolerance and recovery
 -
-Our implementation is highly fault tolerant. Try crashing some of the peer servers, sending transactions to the network, then restarting the failed server program. Then query the previously failed server
-to see it's blockchain status. It should be consistent with atleast one other node in the network. This shows the fault tolerance and recovery aspects of our system.
+The implementation is highly fault tolerant. Try crashing some of the peer servers, sending transactions to the network, then restarting the failed server program. Then query the previously failed server
+to see it's blockchain status. It should be consistent with atleast one other node in the network. This shows the fault tolerance and recovery aspects of the system.
