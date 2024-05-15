@@ -1,4 +1,4 @@
-Blockchain based peer-to-peer network
+Blockchain consensus on a peer-to-peer network
 =
 Source code for blockchain based distributed peer-to-peer network. Clients can connect to any peer in the network and send transactions. They can also query for the blockchain and read it.
 I have also implemented fault tolerance and recovery for any peer node in the network. This project is intended to show how real life blockchains reach consensus over a distributed network. 
